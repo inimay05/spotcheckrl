@@ -41,5 +41,5 @@ server = "spotcheckr1.server.app:main"
 
 [tool.setuptools]
 include-package-data = true
-packages = ["spotcheckr1", "spotcheckr1.server"]
-package-dir = { "spotcheckr1" = ".", "spotcheckr1.server" = "server" }
+packages = ["spotcheckr1", "spotcheckr1.server", "spotcheckr1.app"]
+package-dir = { "spotcheckr1" = ".", "spotcheckr1.server" = "server", "spotcheckr1.app" = "app" }
