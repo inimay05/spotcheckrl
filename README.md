@@ -1,6 +1,6 @@
 ---
 title: SpotCheckRL
-emoji: cloud
+emoji: ☁️
 colorFrom: purple
 colorTo: green
 sdk: docker
