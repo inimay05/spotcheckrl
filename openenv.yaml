@@ -1,0 +1,41 @@
+name: spotcheckrl
+
+version: '1.0.0'
+
+description: >
+  SpotCheckRL simulates cloud compute job scheduling on spot instances.
+  The agent must complete jobs while managing interruption risk,
+  checkpointing progress strategically, and pausing during expensive
+  price windows. Prices follow a mean-reverting jump-diffusion process.
+
+tasks:
+
+  - id: easy
+    description: Complete a job under stable pricing with rare spikes.
+    difficulty: easy
+
+  - id: medium
+    description: Balance execution and risk under moderate volatility.
+    difficulty: medium
+
+  - id: hard
+    description: Optimize execution under high volatility and frequent interruptions.
+    difficulty: hard
+
+observation_space: See app/models.py Observation
+
+action_space: See app/models.py Action
+
+endpoints:
+  reset: POST /reset
+  step: POST /step
+  state: GET /state
+  tasks: GET /tasks
+  grader: POST /grader
+  baseline: GET /baseline
+
+author: Yamini Amrutha
+
+repository: https://huggingface.co/spaces/your-username/spotcheckrl
+
+tags: [openenv, reinforcement-learning, cloud-computing, spot-instances]
