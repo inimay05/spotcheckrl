@@ -7,7 +7,6 @@ sdk: docker
 pinned: false
 app_port: 7860
 tags:
-  - openenv
   - reinforcement-learning
   - cloud-computing
   - spot-instances
