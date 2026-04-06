@@ -7,8 +7,8 @@
 """
 Spotcheckr1 Environment Implementation.
 
-A simple test environment that echoes back messages sent to it.
-Perfect for testing HTTP server infrastructure.
+Wraps the real SpotCheckRL environment (app/environment.py) for use with
+the openenv HTTP server infrastructure.
 """
 
 from uuid import uuid4
@@ -21,84 +21,79 @@ try:
 except ImportError:
     from models import Spotcheckr1Action, Spotcheckr1Observation
 
+from app.environment import SpotSchedulingEnv
+from app.models import Action as SpotAction
+
 
 class Spotcheckr1Environment(Environment):
     """
-    A simple echo environment that echoes back messages.
+    SpotCheckRL environment wrapped for the openenv server interface.
 
-    This environment is designed for testing the HTTP server infrastructure.
-    It maintains minimal state and simply echoes back whatever message it receives.
-
-    Example:
-        >>> env = Spotcheckr1Environment()
-        >>> obs = env.reset()
-        >>> print(obs.echoed_message)  # "Spotcheckr1 environment ready!"
-        >>>
-        >>> obs = env.step(Spotcheckr1Action(message="Hello"))
-        >>> print(obs.echoed_message)  # "Hello"
-        >>> print(obs.message_length)  # 5
+    Manages a single long-running cloud job on a spot instance whose price
+    evolves according to a mean-reverting jump-diffusion process. The agent
+    must decide each step whether to CONTINUE, CHECKPOINT, TERMINATE, or RESUME.
     """
 
-    # Enable concurrent WebSocket sessions.
-    # Set to True if your environment isolates state between instances.
-    # When True, multiple WebSocket clients can connect simultaneously, each
-    # getting their own environment instance (when using factory mode in app.py).
     SUPPORTS_CONCURRENT_SESSIONS: bool = True
 
     def __init__(self):
-        """Initialize the spotcheckr1 environment."""
+        """Initialize the SpotCheckRL environment."""
         self._state = State(episode_id=str(uuid4()), step_count=0)
-        self._reset_count = 0
+        self._env = SpotSchedulingEnv(task_id="easy", seed=42)
 
     def reset(self) -> Spotcheckr1Observation:
         """
-        Reset the environment.
+        Reset the environment and return the initial observation.
 
         Returns:
-            Spotcheckr1Observation with a ready message
+            Spotcheckr1Observation with initial SpotCheckRL state
         """
         self._state = State(episode_id=str(uuid4()), step_count=0)
-        self._reset_count += 1
+        obs = self._env.reset()
 
         return Spotcheckr1Observation(
-            echoed_message="Spotcheckr1 environment ready!",
-            message_length=0,
-            done=False,
+            price=obs.price,
+            progress=obs.progress,
+            last_checkpoint=obs.last_checkpoint,
+            running=obs.running,
+            bid=obs.bid,
+            valid_actions=obs.valid_actions,
+            exposure=obs.exposure,
             reward=0.0,
+            done=False,
         )
 
     def step(self, action: Spotcheckr1Action) -> Spotcheckr1Observation:  # type: ignore[override]
         """
-        Execute a step in the environment by echoing the message.
+        Execute one step in the environment.
 
         Args:
-            action: Spotcheckr1Action containing the message to echo
+            action: Spotcheckr1Action with action_type string
 
         Returns:
-            Spotcheckr1Observation with the echoed message and its length
+            Spotcheckr1Observation with updated state, reward, and done flag
         """
         self._state.step_count += 1
 
-        message = action.message
-        length = len(message)
+        spot_action = SpotAction(action_type=action.action_type)
+        response = self._env.step(spot_action)
 
-        # Simple reward: longer messages get higher rewards
-        reward = length * 0.1
+        obs = response.observation
+        done = response.done
 
         return Spotcheckr1Observation(
-            echoed_message=message,
-            message_length=length,
-            done=False,
-            reward=reward,
-            metadata={"original_message": message, "step": self._state.step_count},
+            price=obs.price,
+            progress=obs.progress,
+            last_checkpoint=obs.last_checkpoint,
+            running=obs.running,
+            bid=obs.bid,
+            valid_actions=obs.valid_actions,
+            exposure=obs.exposure,
+            reward=response.reward.value,
+            done=done,
         )
 
     @property
     def state(self) -> State:
-        """
-        Get the current environment state.
-
-        Returns:
-            Current State with episode_id and step_count
-        """
+        """Get the current environment state."""
         return self._state
