@@ -67,7 +67,18 @@
       "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && git remote -v\")",
       "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && git remote add hf https://huggingface.co/spaces/yamyam05/spotcheckr1 && git remote -v\")",
       "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && git add . && git commit -m ''Final submission'' 2>&1\")",
-      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && git log --oneline -3\")"
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && git log --oneline -3\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && find . -name ''models.py'' -not -path ''./.venv/*'' -not -path ''./__pycache__/*''\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && find . -name ''*.pyc'' -not -path ''./.venv/*'' | head -40\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && python3 -c \"\"import dis, marshal; f=open\\(''./__pycache__/models.cpython-312.pyc'',''rb''\\); f.read\\(16\\); code=marshal.load\\(f\\); print\\([c.co_name for c in code.co_consts if hasattr\\(c,''co_name''\\)]\\)\"\"\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && find .venv -name ''models.py'' -path ''*spotcheckr1*'' 2>/dev/null; find .venv -name ''spotcheckr1_environment.py'' 2>/dev/null; ls .venv/lib/python*/site-packages/openenv_spotcheckr1* 2>/dev/null || echo ''no installed package found''; find .venv -name ''direct_url.json'' -path ''*spotcheckr1*'' 2>/dev/null | head -3\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && find .venv -name ''models.py'' 2>/dev/null | grep -v __pycache__ | head -10; find .venv -path ''*openenv_spotcheckr1*'' 2>/dev/null | head -10; find .venv -path ''*spotcheckr1*'' -name ''*.py'' 2>/dev/null | grep -v __pycache__ | head -20\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && ls .venv/lib/ 2>/dev/null && ls .venv/lib/python3.12/site-packages/ 2>/dev/null | grep -i spot\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && ls _original_template/ 2>/dev/null\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && find _original_template -name ''models.py'' -o -name ''spotcheckr1_environment.py'' 2>/dev/null | head -10\")",
+      "Bash(wsl -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && cat __pycache__/models.cpython-312.pyc | strings | grep -E ''echoed|price|progress|Spotcheckr1|action_type'' | head -20\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"cd /home/yamini_ceeba/spotcheckrl && docker build -t spotcheckrl . 2>&1\")",
+      "Bash(wsl -d Ubuntu -e bash -c \"curl -s -X POST http://localhost:7860/step -H ''Content-Type: application/json'' -d ''{\"\"action_type\"\": \"\"CONTINUE\"\"}'' | python3 -m json.tool && docker rm -f spotcheckrl_test\")"
     ]
   }
 }

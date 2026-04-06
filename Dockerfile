@@ -9,6 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy all source code
 COPY app/ ./app/
+COPY server/ ./server/
+COPY models.py .
 
 # inference.py must be accessible from container root (/app/inference.py)
 COPY inference.py .
