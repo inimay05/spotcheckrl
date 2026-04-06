@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from typing import Any, Optional
 from uuid import uuid4
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
@@ -15,13 +16,19 @@ class Spotcheckr1Environment(Environment):
     SUPPORTS_CONCURRENT_SESSIONS: bool = False
 
     def __init__(self):
+        super().__init__()
         self._state = State(episode_id=str(uuid4()), step_count=0)
         self._env = SpotSchedulingEnv(task_id="easy", seed=42)
         self._last_reward = 0.0
         self._done = False
 
-    def reset(self) -> Spotcheckr1Observation:
-        self._state = State(episode_id=str(uuid4()), step_count=0)
+    def reset(
+        self,
+        seed: Optional[int] = None,
+        episode_id: Optional[str] = None,
+        **kwargs: Any,
+    ) -> Spotcheckr1Observation:
+        self._state = State(episode_id=episode_id or str(uuid4()), step_count=0)
         self._last_reward = 0.0
         self._done = False
         obs = self._env.reset()
@@ -37,7 +44,12 @@ class Spotcheckr1Environment(Environment):
             done=False,
         )
 
-    def step(self, action: Spotcheckr1Action) -> Spotcheckr1Observation:
+    def step(
+        self,
+        action: Spotcheckr1Action,
+        timeout_s: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Spotcheckr1Observation:
         self._state.step_count += 1
         spot_action = SpotAction(action_type=action.action_type)
         response = self._env.step(spot_action)
