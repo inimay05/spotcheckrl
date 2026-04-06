@@ -48,6 +48,24 @@ app = create_app(
     max_concurrent_envs=1,  # increase this number to allow more concurrent WebSocket sessions
 )
 
+from app.main import tasks as _tasks, baseline as _baseline, grader as _grader, render as _render
+
+@app.get("/tasks")
+def tasks():
+    return _tasks()
+
+@app.get("/baseline")
+def baseline():
+    return _baseline()
+
+@app.post("/grader")
+def grader():
+    return _grader()
+
+@app.get("/render")
+def render():
+    return _render()
+
 
 def main(host: str = "0.0.0.0", port: int = 8000):
     """
