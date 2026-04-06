@@ -6,7 +6,7 @@ All endpoints operate on sessions['default'].
 import logging
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import MAX_STEPS, TASK_CONFIG
@@ -55,6 +55,11 @@ def _get_env() -> SpotSchedulingEnv:
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+@app.get("/")
+def root():
+    return RedirectResponse(url="/docs")
+
 
 @app.post("/reset", response_model=Observation)
 def reset(task_id: str = "easy", seed: int = 42) -> Observation:
