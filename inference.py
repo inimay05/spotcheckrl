@@ -12,6 +12,7 @@ Environment variables (never hardcoded):
 """
 
 import os
+import requests
 
 # ---------------------------------------------------------------------------
 # Config — all from environment, no magic numbers in this file
@@ -106,7 +107,6 @@ def parse_action(text: str, valid_actions: list) -> str:
 
 def main() -> None:
     from openai import OpenAI
-    import requests
 
     client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
 
