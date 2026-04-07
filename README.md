@@ -35,7 +35,7 @@ curl -X POST http://localhost:7860/step \
 ### Local
 
 ```bash
-git clone https://huggingface.co/spaces/yamyam05/spotcheckr1
+git clone https://huggingface.co/spaces/yamyam05/SpotCheckRL
 cd spotcheckrl
 pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 7860 --workers 1
