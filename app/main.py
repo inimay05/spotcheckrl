@@ -114,14 +114,8 @@ def _task_description(task_id: str) -> str:
 
 @app.post("/grader")
 def grader():
-    """Score a completed episode. Raises 400 if episode still in progress."""
+    """Score the current episode. Returns partial score if episode still in progress."""
     env = _get_env()
-    episode_done = (env.progress >= 1.0) or (env.time_elapsed >= MAX_STEPS)
-    if not episode_done:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Episode not complete yet (progress={env.progress:.3f}, steps={env.time_elapsed}/{MAX_STEPS})",
-        )
     result = env.get_episode_result()
     grader_fn = get_grader(env.task_id)
     score = grader_fn(result)
