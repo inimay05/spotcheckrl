@@ -3,11 +3,11 @@ inference.py — Mandatory hackathon inference script for SpotCheckRL.
 Located in ROOT directory (not inside app/).
 
 Environment variables (never hardcoded):
-  API_BASE_URL        LLM API base  (default: https://api.openai.com/v1)
-  MODEL_NAME          Model ID      (default: gpt-4o-mini)
+  API_BASE_URL        LLM API base  (default: <your-active-endpoint>)
+  MODEL_NAME          Model ID      (default: <your-active-model>)
   HF_TOKEN            API key (checked first)
   OPENAI_API_KEY      API key (fallback)
-  SPOTCHECKRL_TASK    Task to run   (default: easy)
+  SPOTCHECKRL_TASK    Task to run   (default: runs all 3 tasks)
   ENV_BASE_URL        Env server    (default: http://localhost:7860)
 """
 
@@ -21,11 +21,12 @@ import requests
 API_BASE_URL = os.getenv("API_BASE_URL", "<your-active-endpoint>")
 MODEL_NAME   = os.getenv("MODEL_NAME", "<your-active-model>")
 API_KEY      = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY")
-TASK_NAME    = os.getenv("SPOTCHECKRL_TASK", "easy")
+TASK_NAME    = os.getenv("SPOTCHECKRL_TASK", None)  # None = run all 3
 BASE_URL     = os.getenv("ENV_BASE_URL", "http://localhost:7860")
 
 MAX_STEPS          = 100
 SUCCESS_THRESHOLD  = 0.5
+ALL_TASKS          = ["easy", "medium", "hard"]
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +61,7 @@ def log_end(success: bool, steps: int, score: float, rewards: list) -> None:
 # Prompt construction
 # ---------------------------------------------------------------------------
 
-def build_prompt(obs: dict) -> str:
+def build_prompt(obs: dict, task_name: str) -> str:
     price         = obs.get("price", 0.0)
     bid           = obs.get("bid", 0.0)
     running       = obs.get("running", True)
@@ -72,7 +73,7 @@ def build_prompt(obs: dict) -> str:
     return (
         f"You are scheduling a cloud compute job on a spot instance.\n\n"
         f"Current state:\n"
-        f"  task:            {TASK_NAME}\n"
+        f"  task:            {task_name}\n"
         f"  price:           {price:.4f}  (interruption threshold / bid: {bid:.2f})\n"
         f"  running:         {running}\n"
         f"  progress:        {progress:.4f}  (1.0 = complete)\n"
@@ -102,26 +103,22 @@ def parse_action(text: str, valid_actions: list) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Main episode loop
+# Single episode runner
 # ---------------------------------------------------------------------------
 
-def main() -> None:
-    from openai import OpenAI
-
-    client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
-
+def run_episode(client, task_name: str) -> None:
     rewards: list[float] = []
     steps_taken = 0
     score       = 0.0
     success     = False
 
-    log_start(task=TASK_NAME, env="spotcheckrl", model=MODEL_NAME)
+    log_start(task=task_name, env="spotcheckrl", model=MODEL_NAME)
 
     try:
         # Reset environment
         resp = requests.post(
             f"{BASE_URL}/reset",
-            params={"task_id": TASK_NAME, "seed": 42},
+            params={"task_id": task_name, "seed": 42},
         )
         resp.raise_for_status()
         obs = resp.json()
@@ -130,8 +127,8 @@ def main() -> None:
             if obs.get("done", False):
                 break
 
-            valid    = obs.get("valid_actions", ["CONTINUE"])
-            prompt   = build_prompt(obs)
+            valid  = obs.get("valid_actions", ["CONTINUE"])
+            prompt = build_prompt(obs, task_name)
 
             try:
                 completion = client.chat.completions.create(
@@ -169,7 +166,7 @@ def main() -> None:
             if done:
                 break
 
-        # Grade the completed episode
+        # Grade the episode
         try:
             grade_resp = requests.post(f"{BASE_URL}/grader").json()
             score      = grade_resp.get("score", 0.0)
@@ -180,6 +177,21 @@ def main() -> None:
 
     finally:
         log_end(success, steps_taken, score, rewards)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main() -> None:
+    from openai import OpenAI
+
+    client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
+
+    tasks = [TASK_NAME] if TASK_NAME else ALL_TASKS
+
+    for task in tasks:
+        run_episode(client, task)
 
 
 # ---------------------------------------------------------------------------
